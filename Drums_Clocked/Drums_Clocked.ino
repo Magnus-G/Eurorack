@@ -24,6 +24,9 @@ void setup() {
 //////////////////////////////////////////// loop
 
 void loop() {  
+
+  int pattern = (analogRead(0) / (1023/noOfPatterns)); if (pattern > 0) {  pattern--; } // deal with zero indexing on addressing the array vs the integer declared to set the number.s
+
   if (clkState == HIGH) {
     for (int row=0; row<noOfRows; row++) {
       clkState = LOW;  // reset for the next clock
@@ -31,39 +34,36 @@ void loop() {
       int randValueSubtractions = random(0, 1023);
       int randValueAdditions = random(0, 1023);
 
-      int pattern = (analogRead(0) / (1023/noOfPatterns)); if (pattern > 0) {  pattern--; } // deal with zero indexing on addressing the array vs the integer declared to set the number.
 
       if (drumPatternList[pattern][row][column] == 1) {
-        if (randValueSubtractions > analogRead(3)) {   
-          digitalWrite(pinOffset + row, drumPatternList[pattern][row][column]);  
-        }
+        drumPatternListBuffer[pattern][row][column] = drumPatternList[pattern][row][column];
       }
 
-      if (drumPatternList[pattern][row][column] == 0) {
-        if (randValueAdditions < analogRead(2)) {   
-          digitalWrite(pinOffset + row, LOW);  
-          digitalWrite(pinOffset + row, HIGH);  
-          digitalWrite(pinOffset + row, LOW);
-        }
-      }
+      // if (drumPatternList[pattern][row][column] == 0) {
+      //   if (randValueAdditions < analogRead(2)) {   
+      //     digitalWrite(pinOffset + row, LOW);  
+      //     digitalWrite(pinOffset + row, HIGH);  
+      //     digitalWrite(pinOffset + row, LOW);
+      //   }
+      // }
       
       // delay(1);
 
-      trigOrNot[row] = drumPatternList[pattern][row][column]; // give trigOrNot a 1 or 0 depending on trigger strike or not
+      // trigOrNot[row] = drumPatternList[pattern][row][column]; // give trigOrNot a 1 or 0 depending on trigger strike or not
       
-      if (trigOrNot[row] == 1) { // if this is a trigger
-        if (nextStateForTrig[row] == 1) { // if the indicator variable shows 1
-          if (randValueSubtractions > analogRead(3)) {  
-            digitalWrite(pinOffset + row, LOW);  // turn gate off
-            digitalWrite(pinOffset + row, HIGH);  // turn gate on 
-            digitalWrite(pinOffset + row, LOW);  // turn gate off
-          }
-          nextStateForTrig[row] = 0; // indicator value set to 0 to indicate that the last trig turned gate off... so next one should keep it on and not go through this loop
-        }
-        else {
-          nextStateForTrig[row] = 1; // so that next time there will be a turning off 
-        }
-      }
+      // if (trigOrNot[row] == 1) { // if this is a trigger
+      //   if (nextStateForTrig[row] == 1) { // if the indicator variable shows 1
+      //     if (randValueSubtractions > analogRead(3)) {  
+      //       digitalWrite(pinOffset + row, LOW);  // turn gate off
+      //       digitalWrite(pinOffset + row, HIGH);  // turn gate on 
+      //       digitalWrite(pinOffset + row, LOW);  // turn gate off
+      //     }
+      //     nextStateForTrig[row] = 0; // indicator value set to 0 to indicate that the last trig turned gate off... so next one should keep it on and not go through this loop
+      //   }
+      //   else {
+      //     nextStateForTrig[row] = 1; // so that next time there will be a turning off 
+      //   }
+      // }
     } // gone through a whole column
     
     column++;
@@ -71,7 +71,25 @@ void loop() {
     if (column >= noOfColumns) {
       column = 0;
     }
+  } // end clock high
+
+
+
+
+
+  for (int row=0; row<noOfRows; row++) {
+
+    if (drumPatternListBuffer[pattern][row][column] == 1) {
+      digitalWrite(pinOffset + row, drumPatternListBuffer[pattern][row][column]);  
+      digitalWrite(pinOffset + row, 0);  
+      drumPatternListBuffer[pattern][row][column] = 0;
+    }
   }
+
+
+
+
+
 } // end loop
 
 //////////////////////////////////////////// convenience routines
@@ -90,4 +108,3 @@ void dacOutput(byte v) {
       // Serial.println("trigOrNot[row][column]: ");
       // Serial.print(row      ); Serial.println(column);
       // Serial.println(trigOrNot[row][column]);
-//test
