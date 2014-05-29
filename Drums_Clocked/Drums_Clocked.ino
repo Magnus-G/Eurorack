@@ -90,3 +90,4 @@ void dacOutput(byte v) {
       // Serial.println("trigOrNot[row][column]: ");
       // Serial.print(row      ); Serial.println(column);
       // Serial.println(trigOrNot[row][column]);
+//test
