@@ -35,27 +35,25 @@ void loop() {
       halfwayThroughBetweenClockIns = timeBetweenClockIns / 2;
       extraTriggerHasBeenUsed = 0;
 
-
-      // int randValueSubtractions = random(0, 1023);
-      // int randValueAdditions = random(0, 1023);
-
       int pattern = (analogRead(0) / (1023/noOfPatterns)); if (pattern > 0) {  pattern--; } // deal with zero indexing on addressing the array vs the integer declared to set the number.s
-
-
 
       if (drumPatternList[pattern][row][column] == 1) {
         drumPatternListBuffer[pattern][row][column] = drumPatternList[pattern][row][column];
       }
 
-      // if (drumPatternList[pattern][row][column] == 0) {
-      //   if (randValueAdditions < analogRead(2)) {   
-      //     digitalWrite(pinOffset + row, LOW);  
-      //     digitalWrite(pinOffset + row, HIGH);  
-      //     digitalWrite(pinOffset + row, LOW);
-      //   }
-      // }
+      int randValueSubtractions = random(0, 1023);
+      int randValueAdditions = random(0, 1023);
+
+      if (drumPatternListBuffer[pattern][row][column] == 0) { // send a trigger anyway although there is no trigger in the drumPattern at this place
+        if (randValueAdditions < analogRead(2)) {   
+          digitalWrite(pinOffset + row, LOW);  
+          digitalWrite(pinOffset + row, HIGH);  
+          digitalWrite(pinOffset + row, LOW);
+          drumPatternListBuffer[pattern][row][column] = 0;
+        }
+      }
       
-      // delay(1);
+      delay(1);
 
       // trigOrNot[row] = drumPatternList[pattern][row][column]; // give trigOrNot a 1 or 0 depending on trigger strike or not
       
