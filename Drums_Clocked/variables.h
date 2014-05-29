@@ -1,13 +1,19 @@
 const int clkIn = 2;           // the digital (clock) input
 const int digPin[2] = {3,4};  // the digital output pins
 const int pinOffset = 5;       // the first DAC pin (from 5-12)
-
-//  variables for interrupt handling of the clock input
 volatile int clkState = LOW;
 
 // for the on/off switch on clock in
 int inputIsHigh = 0;
 int digState[2] = {LOW, LOW};  // start with both set low
+
+//////////////////////////////////////////// timings
+
+int clockInTime;
+int previousClockInTime;
+int timeBetweenClockIns;
+int halfwayThroughBetweenClockIns;
+int extraTriggerHasBeenUsed = 0;
 
 //////////////////////////////////////////// drumPatterns
 

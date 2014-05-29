@@ -25,14 +25,22 @@ void setup() {
 
 void loop() {  
 
-  int pattern = (analogRead(0) / (1023/noOfPatterns)); if (pattern > 0) {  pattern--; } // deal with zero indexing on addressing the array vs the integer declared to set the number.s
 
   if (clkState == HIGH) {
     for (int row=0; row<noOfRows; row++) {
       clkState = LOW;  // reset for the next clock
 
-      int randValueSubtractions = random(0, 1023);
-      int randValueAdditions = random(0, 1023);
+      clockInTime = millis();
+      timeBetweenClockIns = clockInTime - previousClockInTime;
+      halfwayThroughBetweenClockIns = timeBetweenClockIns / 2;
+      extraTriggerHasBeenUsed = 0;
+
+
+      // int randValueSubtractions = random(0, 1023);
+      // int randValueAdditions = random(0, 1023);
+
+      int pattern = (analogRead(0) / (1023/noOfPatterns)); if (pattern > 0) {  pattern--; } // deal with zero indexing on addressing the array vs the integer declared to set the number.s
+
 
 
       if (drumPatternList[pattern][row][column] == 1) {
@@ -65,7 +73,11 @@ void loop() {
       //   }
       // }
     } // gone through a whole column
-    
+
+    previousClockInTime = clockInTime;
+
+
+
     column++;
 
     if (column >= noOfColumns) {
@@ -75,7 +87,7 @@ void loop() {
 
 
 
-
+  int pattern = (analogRead(0) / (1023/noOfPatterns)); if (pattern > 0) {  pattern--; } // deal with zero indexing on addressing the array vs the integer declared to set the number.s
 
   for (int row=0; row<noOfRows; row++) {
 
@@ -84,13 +96,53 @@ void loop() {
       digitalWrite(pinOffset + row, 0);  
       drumPatternListBuffer[pattern][row][column] = 0;
     }
+
+    int randValueInbetweenTrigger = random(0, 1023);
+    if (randValueInbetweenTrigger < (analogRead(1) / 2)) {
+
+      // Serial.println(millis());    
+      // Serial.println(clockInTime + halfwayThroughBetweenClockIns);    
+      // Serial.println();    
+
+      if ((millis() > (clockInTime + halfwayThroughBetweenClockIns)) && (extraTriggerHasBeenUsed == 0)) {
+        // Serial.println("inne");
+        // Serial.println();    
+
+        digitalWrite(pinOffset + row, 1);  
+        digitalWrite(pinOffset + row, 0);  
+        drumPatternListBuffer[pattern][row][column] = 0;
+
+        extraTriggerHasBeenUsed = 1;
+      }
+    }
   }
 
+
+  
+    
+  //     digitalWrite(pinOffset + row, 0);  
+  //     drumPatternListBuffer[pattern][row][column] = 0;
 
 
 
 
 } // end loop
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //////////////////////////////////////////// convenience routines
 
