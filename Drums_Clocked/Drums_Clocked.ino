@@ -46,10 +46,7 @@ void loop() {
 
       if (drumPatternListBuffer[pattern][row][column] == 0) { // send a trigger anyway although there is no trigger in the drumPattern at this place
         if (randValueAdditions < analogRead(2)) {   
-          digitalWrite(pinOffset + row, LOW);  
-          digitalWrite(pinOffset + row, HIGH);  
-          digitalWrite(pinOffset + row, LOW);
-          drumPatternListBuffer[pattern][row][column] = 0;
+          drumPatternListBuffer[pattern][row][column] = 1;        
         }
       }
       
