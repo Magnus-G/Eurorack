@@ -101,9 +101,6 @@ void loop() {
       }
     }
 
-    // Serial.print("pattern: ");
-    // Serial.println(pattern                );
-
     // The actual sending of trigger
     if (trigger == 1) {
       // if gate is open, turn it off quickly to generate a trigger.
