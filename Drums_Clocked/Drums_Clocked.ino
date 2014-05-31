@@ -26,33 +26,44 @@ void setup() {
 void loop() {  
 
 
+  // Clock state high encompasses the preparation for the triggers. 
+  // Actual triggers happen after the "clock high"
   if (clkState == HIGH) {
     for (int row=0; row<noOfRows; row++) {
       clkState = LOW;  // reset for the next clock
 
+      // For the InbetweenTrigger
       clockInTime = millis();
       timeBetweenClockIns = clockInTime - previousClockInTime;
       halfwayThroughBetweenClockIns = timeBetweenClockIns / 2;
       extraTriggerHasBeenUsed = 0;
 
-      int pattern = (analogRead(0) / (1023/noOfPatterns)); if (pattern > 0) {  pattern--; } // deal with zero indexing on addressing the array vs the integer declared to set the number.s
+      // Set pattern type
+      // deal with zero indexing on addressing the array 
+      // vs the integer declared to set the number.
+      int pattern = (analogRead(0) / (1023/noOfPatterns)); if (pattern > 0) {  pattern--; } 
 
+      // Assign pattern state to buffer pattern to triger after clock high. 
       if (drumPatternList[pattern][row][column] == 1) {
         drumPatternListBuffer[pattern][row][column] = drumPatternList[pattern][row][column];
       }
 
+      // Set random numbers for potential additions/subtractions
       int randValueSubtractions = random(0, 1023);
       int randValueAdditions = random(0, 1023);
 
-      if (drumPatternListBuffer[pattern][row][column] == 0) { // send a trigger anyway although there is no trigger in the drumPattern at this place
+      // Assign a trigger anyway although there is no trigger 
+      // in the drumPattern at this place
+      if (drumPatternListBuffer[pattern][row][column] == 0) { 
         if (randValueAdditions < analogRead(2)) {   
           drumPatternListBuffer[pattern][row][column] = 1;        
         }
       }
       
+      // this could be removed
       delay(1);
 
-      // trigOrNot[row] = drumPatternList[pattern][row][column]; // give trigOrNot a 1 or 0 depending on trigger strike or not
+      trigOrNot[row] = drumPatternListBuffer[pattern][row][column]; // give trigOrNot a 1 or 0 depending on trigger strike or not
       
       // if (trigOrNot[row] == 1) { // if this is a trigger
       //   if (nextStateForTrig[row] == 1) { // if the indicator variable shows 1
@@ -81,11 +92,14 @@ void loop() {
   } // end clock high
 
 
-
+  // is this needed? set pattern again?
   int pattern = (analogRead(0) / (1023/noOfPatterns)); if (pattern > 0) {  pattern--; } // deal with zero indexing on addressing the array vs the integer declared to set the number.s
 
   for (int row=0; row<noOfRows; row++) {
 
+    // instead of the trigger strike here, make just one trigger strike for loop.
+    // in that for loop, ask if the current row is ON or OFF. 
+    // if ON then close gate. if OFF then open gate
     if (drumPatternListBuffer[pattern][row][column] == 1) {
       digitalWrite(pinOffset + row, drumPatternListBuffer[pattern][row][column]);  
       digitalWrite(pinOffset + row, 0);  
@@ -95,13 +109,7 @@ void loop() {
     int randValueInbetweenTrigger = random(0, 1023);
     if (randValueInbetweenTrigger < (analogRead(1) / 2)) {
 
-      // Serial.println(millis());    
-      // Serial.println(clockInTime + halfwayThroughBetweenClockIns);    
-      // Serial.println();    
-
       if ((millis() > (clockInTime + halfwayThroughBetweenClockIns)) && (extraTriggerHasBeenUsed == 0)) {
-        // Serial.println("inne");
-        // Serial.println();    
 
         digitalWrite(pinOffset + row, 1);  
         digitalWrite(pinOffset + row, 0);  
@@ -111,13 +119,6 @@ void loop() {
       }
     }
   }
-
-
-  
-    
-  //     digitalWrite(pinOffset + row, 0);  
-  //     drumPatternListBuffer[pattern][row][column] = 0;
-
 
 
 
