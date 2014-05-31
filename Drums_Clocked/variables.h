@@ -49,11 +49,13 @@ int drumPatternList[noOfPatterns][noOfRows][noOfColumns] =
 
 int drumPatternListBuffer[noOfPatterns][noOfRows][noOfColumns];
 int trigger;
+int addTrigger;
+int subtractTrigger;
 
 //////////////////////////////////////////// strikes
 
-int trigOrNot[noOfRows] = {1,1,1,1};
-int nextStateForTrig[noOfRows] = {1,1,1,1}; 
+int gateOpenOnThisRow[noOfRows] = {1, 1, 1, 1, 1};
+int nextStateForGate[noOfRows] = {1, 1, 1, 1, 1};
 
 
 	// {0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0},

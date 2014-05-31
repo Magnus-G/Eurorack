@@ -25,7 +25,6 @@ void setup() {
 
 void loop() {  
 
-
   // Clock state high encompasses the preparation for the triggers. 
   // Actual triggers happen after the "clock high"
   if (clkState == HIGH) {
@@ -48,38 +47,27 @@ void loop() {
         drumPatternListBuffer[pattern][row][column] = drumPatternList[pattern][row][column];
       }
 
-      // Set random numbers for potential additions/subtractions
-      int randValueSubtractions = random(0, 1023);
+      // Set random numbers for potential additions
       int randValueAdditions = random(0, 1023);
 
       // Assign a trigger anyway although there is no trigger 
       // in the drumPattern at this place
       if (drumPatternListBuffer[pattern][row][column] == 0) { 
         if (randValueAdditions < analogRead(2)) {   
-          drumPatternListBuffer[pattern][row][column] = 1;        
+          drumPatternListBuffer[pattern][row][column] = 1;
         }
       }
-      
-      trigOrNot[row] = drumPatternListBuffer[pattern][row][column]; // give trigOrNot a 1 or 0 depending on trigger strike or not
-      
-      // if (trigOrNot[row] == 1) { // if this is a trigger
-      //   if (nextStateForTrig[row] == 1) { // if the indicator variable shows 1
-      //     if (randValueSubtractions > analogRead(3)) {  
-      //       digitalWrite(pinOffset + row, LOW);  // turn gate off
-      //       digitalWrite(pinOffset + row, HIGH);  // turn gate on 
-      //       digitalWrite(pinOffset + row, LOW);  // turn gate off
-      //     }
-      //     nextStateForTrig[row] = 0; // indicator value set to 0 to indicate that the last trig turned gate off... so next one should keep it on and not go through this loop
-      //   }
-      //   else {
-      //     nextStateForTrig[row] = 1; // so that next time there will be a turning off 
-      //   }
-      // }
+
+      // Set random numbers for potential subtractions
+      int randValueSubtractions = random(0, 1023);
+      if (drumPatternListBuffer[pattern][row][column] == 1) { 
+        if (randValueAdditions < analogRead(3)) {   
+          drumPatternListBuffer[pattern][row][column] = 0;
+        }
+      }
     } // gone through a whole column
 
     previousClockInTime = clockInTime;
-
-
 
     column++;
 
@@ -88,8 +76,8 @@ void loop() {
     }
   } // end clock high
 
+  ///////////////////////////////////////////////////////////////
 
-  // is this needed? set pattern again?
   int pattern = (analogRead(0) / (1023/noOfPatterns)); if (pattern > 0) {  pattern--; } // deal with zero indexing on addressing the array vs the integer declared to set the number.s
 
   for (int row=0; row<noOfRows; row++) {
@@ -112,24 +100,28 @@ void loop() {
 
     // The actual sending of trigger
     if (trigger == 1) {
-      digitalWrite(pinOffset + row, 1);  
+      // if gate is open, turn it off quickly to generate a trigger.
       digitalWrite(pinOffset + row, 0);  
+      digitalWrite(pinOffset + row, 1);  
+
+      // if gate is open on this row, close gate.
+      if (gateOpenOnThisRow[row] == 1) {
+        digitalWrite(pinOffset + row, 0);
+        gateOpenOnThisRow[row] = 0;
+      }
+
+      // if gate is closed on this row, keep gate open from trigger above.
+      else {
+        gateOpenOnThisRow[row] = 1;
+      }
+
+      // reset buffer variable
       drumPatternListBuffer[pattern][row][column] = 0;
+      // reset trigger variable
       trigger = 0;
     }
   }
 } // end loop
-
-
-
-
-
-
-
-
-
-
-
 
 
 
