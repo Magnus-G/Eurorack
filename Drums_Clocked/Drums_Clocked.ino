@@ -60,9 +60,6 @@ void loop() {
         }
       }
       
-      // this could be removed
-      delay(1);
-
       trigOrNot[row] = drumPatternListBuffer[pattern][row][column]; // give trigOrNot a 1 or 0 depending on trigger strike or not
       
       // if (trigOrNot[row] == 1) { // if this is a trigger
@@ -97,31 +94,30 @@ void loop() {
 
   for (int row=0; row<noOfRows; row++) {
 
-    // instead of the trigger strike here, make just one trigger strike for loop.
     // in that for loop, ask if the current row is ON or OFF. 
     // if ON then close gate. if OFF then open gate
     if (drumPatternListBuffer[pattern][row][column] == 1) {
-      digitalWrite(pinOffset + row, drumPatternListBuffer[pattern][row][column]);  
-      digitalWrite(pinOffset + row, 0);  
-      drumPatternListBuffer[pattern][row][column] = 0;
+      trigger = 1;
     }
 
+    // Will there be an extra trigger between the two set triggers?
     int randValueInbetweenTrigger = random(0, 1023);
     if (randValueInbetweenTrigger < (analogRead(1) / 2)) {
 
       if ((millis() > (clockInTime + halfwayThroughBetweenClockIns)) && (extraTriggerHasBeenUsed == 0)) {
-
-        digitalWrite(pinOffset + row, 1);  
-        digitalWrite(pinOffset + row, 0);  
-        drumPatternListBuffer[pattern][row][column] = 0;
-
+        trigger = 1;
         extraTriggerHasBeenUsed = 1;
       }
     }
+
+    // The actual sending of trigger
+    if (trigger == 1) {
+      digitalWrite(pinOffset + row, 1);  
+      digitalWrite(pinOffset + row, 0);  
+      drumPatternListBuffer[pattern][row][column] = 0;
+      trigger = 0;
+    }
   }
-
-
-
 } // end loop
 
 

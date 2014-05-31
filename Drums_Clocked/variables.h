@@ -48,6 +48,7 @@ int drumPatternList[noOfPatterns][noOfRows][noOfColumns] =
 };
 
 int drumPatternListBuffer[noOfPatterns][noOfRows][noOfColumns];
+int trigger;
 
 //////////////////////////////////////////// strikes
 
