@@ -1,2 +1,3 @@
 - Use A2 for setting probability for a jump to another place in the pattern. Full randomization of sequence on A2 max.
 - Put all actual implementations of triggers outside of loop to make it possible to perform double triggers like in ClockedDrums
+- Make base note much lower than it is now.
