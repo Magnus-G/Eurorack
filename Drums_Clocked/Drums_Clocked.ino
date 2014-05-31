@@ -23,7 +23,7 @@ void setup() {
 
 //////////////////////////////////////////// loop
 
-void loop() {  
+void loop() {    
 
   // Clock state high encompasses the preparation for the triggers. 
   // Actual triggers happen after the "clock high"
@@ -78,7 +78,10 @@ void loop() {
 
   ///////////////////////////////////////////////////////////////
 
-  int pattern = (analogRead(0) / (1023/noOfPatterns)); if (pattern > 0) {  pattern--; } // deal with zero indexing on addressing the array vs the integer declared to set the number.s
+  // Set pattern type
+    // deal with zero indexing on addressing the array 
+    // vs the integer declared to set the number.
+    int pattern = (analogRead(0) / (1023/noOfPatterns)); if (pattern > 0) {  pattern--; } 
 
   for (int row=0; row<noOfRows; row++) {
 
@@ -97,6 +100,9 @@ void loop() {
         extraTriggerHasBeenUsed = 1;
       }
     }
+
+    // Serial.print("pattern: ");
+    // Serial.println(pattern                );
 
     // The actual sending of trigger
     if (trigger == 1) {
