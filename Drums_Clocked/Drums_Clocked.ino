@@ -74,6 +74,23 @@ void loop() {
     if (column >= noOfColumns) {
       column = 0;
     }
+
+    drumLoops++;
+
+    for (int output=5; output<8; output++) {
+      if (drumLoops % outputNumber[output] == 0) {
+        digitalWrite(pinOffset+(output), HIGH);
+        // delay(1);
+        
+        if (gateOpenOnThisRow[output] == 1) {
+          digitalWrite(pinOffset+(output), LOW);
+          gateOpenOnThisRow[output] = 0;
+        }
+        else {
+          gateOpenOnThisRow[output] = 1;
+        }
+      }
+    }
   } // end clock high
 
   ///////////////////////////////////////////////////////////////

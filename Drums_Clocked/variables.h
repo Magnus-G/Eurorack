@@ -15,13 +15,19 @@ int timeBetweenClockIns;
 int halfwayThroughBetweenClockIns;
 int extraTriggerHasBeenUsed = 0;
 
+//////////////////////////////////////////// divider for lower outputs
+
+int drumLoops = 0;
+int outputNumber[8] = {0, 0, 0, 0, 0, 2, 3, 4};
+int const noOfRows = 8;
+int gateOpenOnThisRow[noOfRows] = {1, 1, 1, 1, 1, 1, 1, 1};
+
 //////////////////////////////////////////// drumPatterns
 
 // indicates the current column
 int column = 0;
 
 int const noOfPatterns = 5;
-int const noOfRows = 5;
 int const noOfColumns = 16;
 int drumPatternList[noOfPatterns][noOfRows][noOfColumns] = 
 {
@@ -32,7 +38,7 @@ int drumPatternList[noOfPatterns][noOfRows][noOfColumns] =
 	{0, 0, 0, 0, 1, 0, 0, 0,  0, 0, 0, 0, 1, 0, 0, 0},
 	{1, 0, 1, 0, 1, 0, 1, 0,  1, 0, 1, 0, 1, 0, 1, 0},
 	{0, 0, 0, 0, 0, 0, 0, 0,  1, 1, 1, 1, 1, 1, 1, 1},
-	{0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0},
+	{1, 0, 0, 1, 0, 0, 1, 0,  0, 1, 0, 0, 1, 0, 0, 1},
 },
 
 {
@@ -42,7 +48,7 @@ int drumPatternList[noOfPatterns][noOfRows][noOfColumns] =
 	{0, 0, 1, 0, 0, 1, 0, 0,  0, 0, 1, 0, 0, 0, 1, 0},
 	{0, 0, 0, 1, 0, 0, 0, 0,  0, 0, 0, 1, 0, 1, 0, 0},
 	{1, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 1, 1, 1, 1},
-	{0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0},
+	{1, 0, 0, 1, 0, 0, 1, 0,  0, 1, 0, 0, 1, 0, 0, 1},
 },
 
 {
@@ -52,7 +58,7 @@ int drumPatternList[noOfPatterns][noOfRows][noOfColumns] =
 	{0, 0, 0, 0, 0, 0, 0, 0,  1, 0, 0, 0, 0, 0, 0, 0},
 	{0, 0, 0, 0, 1, 0, 0, 0,  0, 0, 0, 0, 1, 0, 0, 0},
 	{0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0},
-	{0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0},
+	{1, 0, 0, 1, 0, 0, 1, 0,  0, 1, 0, 0, 1, 0, 0, 1},
 },
 
 {
@@ -61,8 +67,8 @@ int drumPatternList[noOfPatterns][noOfRows][noOfColumns] =
   {1, 0, 0, 0, 0, 0, 0, 0,  1, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 1, 0, 0, 0, 0, 0,  0, 0, 1, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 1, 0, 0, 0,  0, 0, 0, 0, 1, 0, 0, 0},
-  {0, 0, 0, 0, 0, 0, 1, 0,  0, 0, 0, 0, 0, 0, 1, 0},
   {1, 1, 0, 0, 0, 1, 1, 0,  0, 0, 1, 1, 0, 0, 0, 1},
+  {1, 0, 0, 1, 0, 0, 1, 0,  0, 1, 0, 0, 1, 0, 0, 1},
 },
 
 {
@@ -133,7 +139,6 @@ int subtractTrigger;
 
 //////////////////////////////////////////// strikes
 
-int gateOpenOnThisRow[noOfRows] = {1, 1, 1, 1, 1};
 int nextStateForGate[noOfRows] = {1, 1, 1, 1, 1};
 
 
