@@ -72,7 +72,7 @@ if (clkState == HIGH) {
       //  Serial.print("patternType"); Serial.println(patternType);
     
       // play
-      int note = (((chords[patternValue + transpose][place]) * 4) + (12)); //    int note = (((chords[patternValue][place]) * 4) + (12 * 4));
+      int note = (((chords[patternValue + transpose][place]) * 4));
       dacOutput(note);
 
       // gate high for D1 only if the note changes from last time
