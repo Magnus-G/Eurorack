@@ -1,153 +1,9 @@
-
-//  constants related to the Arduino Nano pin use
-const int clkIn = 2;           // the digital (clock) input
-const int digPin[2] = {3, 4};  // the digital output pins
-const int pinOffset = 5;       // the first DAC pin (from 5-12)
-const int trigTime = 25;       // 25 ms trigger timing
-
-//  variables for interrupt handling of the clock input
-volatile int clkState = LOW;
-
-//  variables used to control the current DIO output states
-int digState[2] = {LOW, LOW};        // start with both set low
-unsigned long digMilli[2] = {0, 0};  // a place to store millis()
-
-// for the on/off switch on clock in
-int inputIsHigh = 0;
-
-int probabilitySwitch = 0;
-
-// for the calculation of distances between "clock highs"
-long time;
-long halfTime;
-long oldTime = 0;
-
-int currentchordValue = 0;
-int previousNote = 98;
-
-int place;
-const int noOfplaces = 9;
-
-
-//////////////////////////////
-
-const int noOfTranspositions = 3;
-int transpositions[noOfTranspositions] = {0, 2, 3};
-int transposeValue;
-int transpose = 0;
-
-//////////////////////////////
-
-int pauseCounterNoOfSteps = 16;
-int pauseCounterEndValue = 0; // the value user sets for when pause is over.
-int pauseCounter = 0;
-
-//////////////////////////////
-
-int patternPlayLength = 16;
-
-//////////////////////////////
-
-int previousPatternPlace;
-
-const int noOfPatterns = 9; // plus one here if a pattern is added to "pattern"
-const int patternLength = 16;
-int patternValue;
-int patternType;
-int patternTypeUtility = 1023 / noOfPatterns;
-int patternPlace = 0;
-int pattern[noOfPatterns][patternLength] = {
-  
-  // | 5 A     || 6 A#     | 7 B      | 8 C     | 9 C#    |10 D    |11 D#    | 12    |
-  // | 0(13) E || 1(14) F  | 2(15) F# | 3 G     | 4 G#    | 5 A    | 6 A#    | 7     |
-  
-  // 1,  2,  3,  4,  5,  6,  7,  8,    1,  2,  3,  4,  5,  6,  7,  8
-    {0,  1,  2,  3,  4,  5,  6,  7,    8,  9,  10, 11, 12, 13, 14, 15},  // 0
-    {0,  7,  10, 7,  9,  5,  7,  3,    2,  9,  12, 9,  11,  7,  9,  5},  // 1
-    {0,  1,  0,  2,  0,  3,  0,  4,    0,  1,  0,  2,  0,  3,  0,  4},   // 2
-    {0,  2,  3,  3,  7,  3,  5,  5,    2,  4,  5,  5,  9,  5,  7,  7},   // 3
-    {0,  8,  7,  5,  3,  5,  7, 10,    0,  8,  7,  5,  3,  5,  7, 10},   // 4
-    {0,  10, 0,  8,  0,  7,  3,  5,    2,  12, 2,  10,  2,  9,  5,  7},   // 5
-    {0,  7,  3,  0,  9,  5,  9,  10,   0,  7,  3,  0,  9,  5,  9, 10},   // 6
-    
-    {0,  0,  1,  0,  0,  2,  0,  3,    0,  0,  3,  0,  0,  2,  0,  1},   // 7 
-    {0,  0,  1,  0,  0,  6,  0,  3,    0,  0,  6,  0,  0,  3,  0,  1},   // 8 
-};
-
-int c     = 1;      int c2     = 13;     int c3     = 25;     int c4     = 37;    int c5     = 49;
-int ciss  = 2;      int ciss2  = 14;     int ciss3  = 26;     int ciss4  = 38;    int ciss5  = 50;
-int d     = 3;      int d2     = 15;     int d3     = 27;     int d4     = 39;    int d5     = 51;
-int diss  = 4;      int diss2  = 16;     int diss3  = 28;     int diss4  = 40;    int diss5  = 52;
-int e     = 5;      int e2     = 17;     int e3     = 29;     int e4     = 41;    int e5     = 53;
-int f     = 6;      int f2     = 18;     int f3     = 30;     int f4     = 42;    int f5     = 54;
-int fiss  = 7;      int fiss2  = 19;     int fiss3  = 31;     int fiss4  = 43;    int fiss5  = 55;
-int g     = 8;      int g2     = 20;     int g3     = 32;     int g4     = 44;    int g5     = 56;
-int giss  = 9;      int giss2  = 21;     int giss3  = 33;     int giss4  = 45;    int giss5  = 57;
-int a     = 10;     int a2     = 22;     int a3     = 34;     int a4     = 46;    int a5     = 58;
-int aiss  = 11;     int aiss2  = 23;     int aiss3  = 35;     int aiss4  = 47;    int aiss5  = 59;
-int b     = 12;     int b2     = 24;     int b3     = 36;     int b4     = 48;    int b5     = 60;
-
-int chord;
-int oldChord;
-const int noOfchords = 16;
-const int chordLength = 15;
-int chordUtility = 1023 / noOfchords;
-int chords[noOfchords][noOfplaces] = {
-  
-  // patternType steps through from top to bottom
-  
-  // 0,    1,     2,      3,     4,     5,      6,     7,     8,   
-  
-    {e,    giss,  b,      e2,    giss2, b2,     e3,    giss3, b3    },      // E 
-    {f,    a,     c2,     aiss2, ciss3, f3,     aiss3, ciss3, f4    },      // F    
-    {fiss, aiss,  ciss2,  fiss2, aiss2, ciss3,  fiss3, aiss3, ciss4 },      // Fiss 
-    {g,    b,     d2,     g2,    b2,    d3,     g3,    b3,    d4    },      // G
-    {giss, c2,    d2,     giss2, c3,    d3,     giss3, c4,    d4    },      // Giss
-    {a,    ciss2, e2,     a2,    ciss3, e3,     a3,    ciss4, e4    },      // A
-    {aiss, d2,    f2,     aiss2, d3,    f3,     aiss3, d4,    f4    },      // Aiss
-    {b,    diss2, fiss2,  b2,    diss3, fiss3,  b3,    diss4, fiss4 },      // B
-    {c2,    e,     g,      c2,    e2,    g2,     c3,    e3,    g3    },     // C
-    {ciss2, f,     giss,   ciss2, f2,    giss2,  ciss3, f3,    giss3 },     // Ciss
-    {d2,    fiss,  a,      d2,    fiss2, a2,     d3,    fiss3, a3    },     // D
-    {diss2, g,     aiss,   diss2, g2,    aiss2,  diss3, g3,    aiss3 },     // Diss
-    
-    {e2,    giss2, b2,     e3,    giss3, b3,     e4,    giss4, b4    },     // E 
-    {f2,    a2,     c3,     aiss3, ciss4, f4,     aiss4, ciss4, f5    },    // F    
-    {fiss2, aiss2,  ciss3,  fiss3, aiss3, ciss4,  fiss4, aiss4, ciss5 },    // Fiss 
-    {g2,    b2,     d3,     g3,    b3,    d4,     g4,    b4,    d5    },      // G
-
-//    {e,    giss,  b,     99,    99,    e2,    giss2, b2,    99,    99,    e3,    giss3, b3,    99,     99},      // E 
-//    {f,    a,     c2,    99,    99,    aiss2, ciss3, f3,    99,    99,    aiss3, ciss3, f4,    99,     99},      // F    
-//    {fiss, aiss,  ciss2, 99,    99,    fiss2, aiss2, ciss3, 99,    99,    fiss3, aiss3, ciss4, 99,     99},      // Fiss 
-//    {g,    b,     d2,    99,    99,    g2,    b2,    d3,    99,    99,    g3,    b3,    d4,    99,     99},      // G
-//    {giss, c2,    d2,    99,    99,    giss2, c3,    d3,    99,    99,    giss3, c4,    d4,    99,     99},      // Giss
-//    {a,    ciss2, e2,    99,    99,    a2,    ciss3, e3,    99,    99,    a3,    ciss4, e4,    99,     99},      // A
-//    {aiss, d2,    f2,    99,    99,    aiss2, d3,    f3,    99,    99,    aiss3, d4,    f4,    99,     99},      // Aiss
-//    {b,    diss2, fiss2, 99,    99,    b2,    diss3, fiss3, 99,    99,    b3,    diss4, fiss4, 99,     99},      // B
-//    {c,    e,     g,     99,    99,    c2,    e2,    g2,    99,    99,    c3,    e3,    g3,    99,     99},      // C
-//    {ciss, f,     giss,  99,    99,    ciss2, f2,    giss2, 99,    99,    ciss3, f3,    giss3, 99,     99},      // Ciss
-//    {d,    fiss,  a,     99,    99,    d2,    fiss2, a2,    99,    99,    d3,    fiss3, a3,    99,     99},      // D
-//    {diss, g,     aiss,  99,    99,    diss2, g2,    aiss2, 99,    99,    diss3, g3,    aiss3, 99,     99},      // Diss
-    
-//    {e,    g,     b,     99,    99,    e2,    g2,    b2,    99,    99,    e3,    g3,    b3,    99,     99},      // Em
-//    {f,    giss,  c2,    99,    99,    f2,    giss2, c3,    99,    99,    f3,    giss3, c4,    99,     99},      // Fm
-//    {fiss, a,     ciss2, 99,    99,    fiss2, a2,    ciss3, 99,    99,    fiss3, a3,    ciss4, 99,     99},      // Fissm  
-//    {g,    aiss,  d2,    99,    99,    g2,    aiss2, d3,    99,    99,    g3,    aiss3, d4,    99,     99},      // Gm
-//    {giss, b,     diss2, 99,    99,    giss2, b2,    diss3, 99,    99,    giss3, b3,    diss4, 99,     99},      // Gissm 
-//    {a,    c2,    e2,    99,    99,    a2,    c3,    e3,    99,    99,    a3,    c4,    e4,    99,     99},      // Am
-//    {aiss, ciss2, f2,    99,    99,    aiss2, ciss3, f3,    99,    99,    aiss3, ciss3, f4,    99,     99},      // Aissm
-//    {b,    d2,    fiss2, 99,    99,    b2,    d3,    fiss3, 99,    99,    b3,    d4,    fiss4, 99,     99},      // Bm
-//    {c,    diss,  g,     99,    99,    c2,    diss2, g2,    99,    99,    c3,    diss3, g3,    99,     99},      // Cm
-//    {ciss, e,     giss,  99,    99,    ciss2, e2,    giss2, 99,    99,    ciss3, e3,    giss3, 99,     99},      // Cissm 
-//    {d,    f,     a,     99,    99,    aiss2, ciss3, f3,    99,    99,    aiss3, ciss3, f4,    99,     99},      // Dm
-//    {diss, fiss,  aiss,  99,    99,    diss2, fiss2, aiss2, 99,    99,    diss3, fiss3, aiss3, 99,     99},      // Dissm
-
-};
+#include "variables.h";
+#include "notes_and_patterns.h";
 
 ////////////////////////////////////////////////////////
 
-void setup() 
-{
+void setup() {
   Serial.begin(9600);
 
   pinMode(clkIn, INPUT);
@@ -164,82 +20,90 @@ void setup()
   attachInterrupt(0, isr, RISING);
 }
 
-
-void setProbabilitySwitch() {   
-      
-}
-
 ////////////////////////////////////////////////////////
 
 void loop() {
 
 if (clkState == HIGH) {
   clkState = LOW;
-  
-        Serial.print("pauseCounter"); Serial.println(pauseCounter);
-        Serial.print("pauseCounterEndValue"); Serial.println(pauseCounterEndValue);        
         
- 
-    pauseCounterEndValue = (analogRead(3) / (1023/pauseCounterNoOfSteps)); if (pauseCounterEndValue > 0) {  pauseCounterEndValue--; } // deal with zero indexing on addressing the array vs the integer declared to set the number.
-      // protect from 
-    if (pauseCounter > pauseCounterEndValue) {
-      pauseCounter = pauseCounterEndValue;
-    }
+                                      // // UNCOMMENT THIS FOR USE OF PAUSE SETTING   
+                                      // // Set the length of pause between end of pattern to
+                                      // // beginning of next pattern.
+                                      // // pauseCounterEndValue = (analogRead(1) / (1023/pauseCounterNoOfSteps)); if (pauseCounterEndValue > 0) {  pauseCounterEndValue--; } 
+                                      // if (pauseCounter > pauseCounterEndValue) {
+                                      //   pauseCounter = pauseCounterEndValue;
+                                      // }
+                                      // if (pauseCounter == pauseCounterEndValue) {
     
-    if (pauseCounter == pauseCounterEndValue) {
-    
-      // patternType sets the type of pattern to be played in the chord matrix. Patterns "jump" up and down through the current chord matrix column. Number shows how far from the top it is.
-  patternType =          (analogRead(0) / (1023/noOfPatterns)); if (patternType > 0) {  chord--; } // deal with zero indexing on addressing the array vs the integer declared to set the number.
- 
-      // between 0 and 16 steps that the sequence will be able to play through. A1 sets the allowed lenght of the played pattern
-  patternPlayLength =    (analogRead(1) / (1023/patternLength)); if (patternPlayLength > 0) {  patternPlayLength--; } // deal with zero indexing on addressing the array vs the integer declared to set the number.
+      // patternType sets the type of pattern to be played in 
+      // the chord matrix. Patterns "jump" up and down through 
+      // the current chord matrix column. Number shows how far 
+      // from the top it is.
 
-    // A2 is used to set a transposition number for the output note. It selects its transposition value in an array of "good sounding" steps.
-//  transposeValue =       (analogRead(2) / (1023/noOfTranspositions)); if (transposeValue > 0) {  transposeValue--; } // deal with zero indexing on addressing the array vs the integer declared to set the number. 
+      patternType = (analogRead(0) / (1023/noOfPatterns)); if (patternType > 0) {  chord--; } 
+      // between 0 and 16 steps that the sequence will be able 
+      //to play through. A1 sets the allowed lenght of the played pattern
+      patternPlayLength = (analogRead(3) / (1023/patternLength)); if (patternPlayLength > 0) {  patternPlayLength--; } 
+
+      // // A2 is used to set a transposition number for the output note. 
+      // // It selects its transposition value in an array of 
+      // // "good sounding" steps.
+      //  transposeValue =       (analogRead(2) / (1023/noOfTranspositions)); if (transposeValue > 0) {  transposeValue--; }  
  
-      // 9 steps x-axis. place sets the column to be played in the chord matrix. different versions of the same chord.
-  place =             (analogRead(2) / (1023/noOfplaces)); if (place > 0) {  place--; } // deal with zero indexing on addressing the array vs the integer declared to set the number.
-      
+      // 9 steps x-axis. place sets the column to be played in 
+      // the chord matrix. different versions of the same chord.
+      place = (analogRead(2) / (1023/noOfplaces)); if (place > 0) {  place--; } 
+
+      int randValuePatternJumpYesOrNo = random(0, 1023);
+      if (randValuePatternJumpYesOrNo < analogRead(1)) {   
+        int randValuePatternJumpTarget = random(0, patternLength);
+        patternPlace = randValuePatternJumpTarget;
+      }
 
       // Gate high for D0 on each output signal
-  digitalWrite(digPin[0], HIGH); digitalWrite(digPin[0], LOW);
+      digitalWrite(digPin[0], HIGH); digitalWrite(digPin[0], LOW);
     
-      // patternValue is the current Y-axis place in the chord matrix. patternPlace advances by 1 for each loop.
-  patternValue = pattern[patternType][patternPlace];    
-  transpose = transpositions[transposeValue];
+      // patternValue is the current Y-axis place in the chord matrix. 
+      // patternPlace advances by 1 for each loop.
+      patternValue = pattern[patternType][patternPlace];    
+      transpose = transpositions[transposeValue];
   
-     //  Serial.print("patternType"); Serial.println(patternType);
+      //  Serial.print("patternType"); Serial.println(patternType);
     
-     // play
-  int note = (((chords[patternValue + transpose][place]) * 4) + (12)); //    int note = (((chords[patternValue][place]) * 4) + (12 * 4));
-  dacOutput(note);
+      // play
+      int note = (((chords[patternValue + transpose][place]) * 4) + (12)); //    int note = (((chords[patternValue][place]) * 4) + (12 * 4));
+      dacOutput(note);
 
+      // gate high for D1 only if the note changes from last time
+      if (previousNote != note) {
+        digitalWrite(digPin[1], HIGH);   
+        digitalWrite(digPin[1], LOW);
+      }
     
-    // gate high for D1 only if the note changes from last time
-  if (previousNote != note) {
-    digitalWrite(digPin[1], HIGH);   
-    digitalWrite(digPin[1], LOW);
-  }
-    
-  previousNote = note;
+      previousNote = note;
 
-    // advance one step in pattern
-  patternPlace++;
-                        
+      // advance one step in pattern
+      patternPlace++;
 
-    
-    // when the pattern has reached its final note in the pattern series, determined by A1 (setting number of steps in the sequence)
-  if (patternPlace >= patternPlayLength+1 ) {
-    patternPlace = 0;
-    pauseCounter = 0;
-  } // pattern has reached its final note
-} // pauseCounter if statement ends
+      // when the pattern has reached its final note in the 
+      //pattern series, determined by A1 (setting number of 
+      // steps in the sequence)
+      if (patternPlace >= patternPlayLength+1 ) {
+        patternPlace = 0;
 
-else {
-  pauseCounter++;
-}
+                                        // // UNCOMMENT THIS FOR USE OF PAUSE SETTING   
+                                        // pauseCounter = 0;
 
-} // clock high ends  
+      } // pattern has reached its final note
+
+                                        // // UNCOMMENT THIS FOR USE OF PAUSE SETTING   
+                                        // } // pauseCounter if statement ends
+                                        // else {
+                                        //   pauseCounter++;
+                                        // }
+
+  } // clock high ends  
 } // loop
 
 

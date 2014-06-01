@@ -1,2 +1,4 @@
 - Use "HighlightWords" in Sublime
 - Create a "one drumskin hit only per trig" mode
+- Clock divider implementation for lower trigger outputs
+- "Gate open" trigger idea doesn't work with straight beat clocking like for quantizer triggering. Extra beats mess it up. 
